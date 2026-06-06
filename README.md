@@ -1,110 +1,71 @@
-# PanicIntel
+PanicIntel is a multimodal crisis monitoring system built to analyze live news and estimate how serious an event is. Instead of depending on text alone, it combines several signals, including article text, article images, retrieval memory, and sentiment analysis, to produce a final crisis score. The system collects news from RSS feeds and the GDELT API, processes each item through a T5-based text encoder and a ViT-based image encoder, and then merges those features into one shared representation. It also compares the current event with previously stored events using a FAISS-based retrieval memory, which helps the model understand context and similarity with earlier crises. To improve ranking quality, the pipeline includes sentiment scoring and graph-based smoothing so that related events can influence each other slightly. The project is exposed through a FastAPI backend and a browser dashboard, making it easy to view live results and test custom inputs. This makes PanicIntel a strong end-to-end AI project because it combines machine learning, retrieval, web development, and real-time data processing in one system.
 
-PanicIntel is a multimodal crisis monitoring project that combines live news ingestion, vision-language scoring, retrieval memory, and sentiment analysis to produce a final crisis score.
 
-## What it does
+## Overview
 
-- Pulls live news from RSS feeds and the GDELT API
-- Uses a T5 + ViT multimodal model to score each event
-- Uses FAISS-based retrieval to compare new events with past ones
-- Applies sentiment analysis as an extra signal
-- Smooths the final score across similar events with graph propagation
-- Exposes the system through a FastAPI backend and a browser dashboard
+The goal of PanicIntel is to detect and rank potentially critical news events in real time. Instead of relying only on text, the system uses multiple signals together. It ingests live news from RSS feeds and the GDELT API, extracts article text and images, scores each event with a multimodal model, compares it with similar past events using retrieval memory, and then combines all signals into a final GPI score. This makes the system more context-aware and more useful for crisis monitoring.
+
+## Features
+
+- Live news ingestion from RSS feeds and the GDELT API
+- Multimodal scoring with T5 for text and ViT for images
+- Retrieval-augmented scoring using FAISS
+- Sentiment analysis using VADER
+- Final crisis score generation using weighted signal fusion
+- Graph-based smoothing across similar events
+- FastAPI backend for API access
+- Browser dashboard for visualizing results
 
 ## Project Structure
 
-- `app.py` - FastAPI application and API routes
-- `config.py` - model and pipeline settings
-- `model.py` - multimodal scoring model
-- `pipeline.py` - news ingestion and scoring pipeline
-- `rag.py` - retrieval memory using FAISS
-- `train.py` - training loop and dataset code
-- `static/index.html` - dashboard UI
+- `app.py` - FastAPI application and API endpoints
+- `config.py` - model names, device selection, and scoring settings
+- `model.py` - multimodal crisis scoring model
+- `pipeline.py` - news ingestion, scoring, and final ranking pipeline
+- `rag.py` - FAISS-based retrieval memory
+- `train.py` - training loop and dataset handling
+- `static/index.html` - dashboard interface
+- `README.md` - project documentation
 
 ## News Sources
 
-The pipeline gets news from:
-
-- BBC World RSS
-- Reuters World RSS
-- Google News RSS search for crisis/disaster topics
+The system collects live news from:
+- BBC World News RSS
+- Reuters World News RSS
+- Google News RSS for crisis-related topics
 - GDELT Article API
+
+These sources allow the pipeline to work with real-world, up-to-date content instead of a fixed dataset only.
+
+## How It Works
+
+1. The pipeline fetches live articles from RSS feeds and GDELT.
+2. Each article is cleaned into a text representation.
+3. The image, if available, is downloaded and processed.
+4. The multimodal model scores the article using both text and image information.
+5. The retrieval system compares the event with similar past events.
+6. Sentiment analysis adds another signal.
+7. All scores are combined into a final GPI value.
+8. Similar events are smoothed together using graph-based propagation.
+9. The results are shown in the dashboard and exposed through the API.
 
 ## Requirements
 
-You need Python 3.10+ and these main packages:
+- Python 3.10+
+- PyTorch
+- Transformers
+- FastAPI
+- Uvicorn
+- NumPy
+- Requests
+- Feedparser
+- Pillow
+- vaderSentiment
+- FAISS
 
-- `torch`
-- `transformers`
-- `fastapi`
-- `uvicorn`
-- `numpy`
-- `requests`
-- `feedparser`
-- `Pillow`
-- `vaderSentiment`
-- `faiss`
+## Installation
 
-## Setup
-
-Install the dependencies:
+Install the required packages:
 
 ```bash
 pip install torch transformers fastapi uvicorn numpy requests feedparser pillow vaderSentiment faiss-cpu
-```
-
-If your system uses GPU FAISS or a different PyTorch build, install the matching version for your machine.
-
-## Run the App
-
-Start the backend:
-
-```bash
-uvicorn app:app --reload
-```
-
-Then open:
-
-- `http://127.0.0.1:8000/`
-
-## API Endpoints
-
-- `GET /api/status` - shows whether models are loaded and how many events are available
-- `GET /api/events` - returns the latest scored events
-- `POST /api/run` - starts the news pipeline
-- `POST /api/score` - scores a custom text input
-
-Example request for `/api/score`:
-
-```json
-{
-  "text": "There has been a major flood in the area."
-}
-```
-
-## Training
-
-The training script expects a dataset with:
-
-- `text`
-- `label`
-- optional `img_url`
-
-Example:
-
-```python
-from train import train
-```
-
-## Notes
-
-- The project is designed to work with live online sources.
-- If a news image fails to load, the pipeline falls back to a blank placeholder image.
-- The model uses a frozen encoder setup to keep training and inference lighter.
-
-## CV Summary
-
-Suggested one-line description:
-
-> Built a multimodal crisis monitoring system using ViT, T5, FAISS retrieval, sentiment analysis, and FastAPI.
-
